@@ -4,10 +4,7 @@ export default defineConfig({
   root: '.',
   build: {
     outDir: 'dist',
-    sourcemap: false,
-    rollupOptions: {
-      input: './web.html'
-    }
+    sourcemap: false
   },
   server: {
     port: 5173,
