@@ -4,9 +4,9 @@
   "description": "Sistema de reserva de turnos para G-line",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview --host"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.0"
