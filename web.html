@@ -50,11 +50,9 @@
                     <section id="inicio" class="section active">
                         <div class="welcome-box">
                             <p>Creá tu cuenta para reservar tu turno de uñas.</p>
-                            <div class="auth-card">
+                            <div class="auth-card" id="authCard">
                                 <h3>Registrate</h3>
-                                <button class="auth-btn" data-method="correo">📧 Crear cuenta con correo</button>
-                                <button class="auth-btn" data-method="facebook">📘 Continuar con Facebook</button>
-                                <button class="auth-btn" data-method="telefono">📱 Continuar con número de teléfono</button>
+                                <p id="welcomeMessage" style="display:none; margin-bottom: 10px; color: #2d6a4f;"></p>
 
                                 <div class="form-group">
                                     <label for="email">Correo</label>
@@ -65,10 +63,22 @@
                                     <input type="password" id="password" class="input-field" placeholder="Min. 6 caracteres">
                                 </div>
                                 <button class="action-btn" id="registerBtn">Crear cuenta</button>
+                                <button class="action-btn" id="loginBtn" style="background-color: #2d6a4f;">Iniciar sesión</button>
                                 <div class="divider" style="margin: 15px 0; text-align: center; color: #999;">O</div>
                                 <button class="action-btn" id="loginGoogle" style="background-color: #DB4437;">🔐 Continuar con Google</button>
                                 <button class="action-btn" id="loginFacebook" style="background-color: #1877F2;">📘 Continuar con Facebook</button>
                                 <button class="action-btn" id="logoutBtn" style="background-color: #FF6B6B; display: none;">Cerrar sesión</button>
+
+                                <div id="passwordChangeBox" style="display:none; margin-top: 15px;">
+                                    <h4>Cambiar contraseña</h4>
+                                    <input type="password" id="newPassword" class="input-field" placeholder="Nueva contraseña">
+                                    <button class="action-btn" id="changePasswordBtn" type="button">Actualizar contraseña</button>
+                                </div>
+
+                                <div id="adminPanel" style="display:none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 12px;">
+                                    <h4>Panel de admin</h4>
+                                    <p>Usuario administrador activo.</p>
+                                </div>
                             </div>
                         </div>
                     </section>

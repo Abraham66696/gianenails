@@ -8,12 +8,38 @@ const horarios = ['08:00', '10:00', '12:00', '13:30', '15:30'];
 // Verificar usuario al cargar
 async function checkUser() {
     currentUser = await getCurrentUser();
+    const authCard = document.getElementById('authCard');
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const adminPanel = document.getElementById('adminPanel');
+    const welcomeMessage = document.getElementById('welcomeMessage');
+    const passwordChangeBox = document.getElementById('passwordChangeBox');
+
     if (currentUser) {
-        document.getElementById('registerBtn').style.display = 'none';
-        document.getElementById('logoutBtn').style.display = 'block';
+        const profile = await getUserProfile(currentUser.id);
+        const isAdmin = isAdminUser(profile || currentUser);
+
+        if (registerBtn) registerBtn.style.display = 'none';
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (logoutBtn) logoutBtn.style.display = 'block';
+        if (authCard) authCard.classList.add('is-authenticated');
+        if (welcomeMessage) {
+            welcomeMessage.textContent = `Sesión activa para ${currentUser.email || 'usuario'}`;
+            welcomeMessage.style.display = 'block';
+        }
+        if (passwordChangeBox) passwordChangeBox.style.display = 'block';
+        if (adminPanel) {
+            adminPanel.style.display = isAdmin ? 'block' : 'none';
+        }
     } else {
-        document.getElementById('registerBtn').style.display = 'block';
-        document.getElementById('logoutBtn').style.display = 'none';
+        if (registerBtn) registerBtn.style.display = 'block';
+        if (loginBtn) loginBtn.style.display = 'block';
+        if (logoutBtn) logoutBtn.style.display = 'none';
+        if (authCard) authCard.classList.remove('is-authenticated');
+        if (welcomeMessage) welcomeMessage.style.display = 'none';
+        if (passwordChangeBox) passwordChangeBox.style.display = 'none';
+        if (adminPanel) adminPanel.style.display = 'none';
     }
 }
 
@@ -161,6 +187,22 @@ document.addEventListener('DOMContentLoaded', function () {
         checkUser();
     });
 
+    document.getElementById('loginBtn').addEventListener('click', async function () {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        if (!email || !password) {
+            alert('Completa correo y contraseña para iniciar sesión.');
+            return;
+        }
+
+        const data = await loginWithEmail(email, password);
+        if (data?.user) {
+            currentUser = data.user;
+            checkUser();
+        }
+    });
+
     document.getElementById('loginGoogle').addEventListener('click', async function () {
         await loginWithGoogle();
         checkUser();
@@ -248,4 +290,23 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('Seleccioná un método de pago y un monto.');
         }
     });
+
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+    if (changePasswordBtn) {
+        changePasswordBtn.addEventListener('click', async function () {
+            const newPassword = document.getElementById('newPassword').value;
+            if (!newPassword || newPassword.length < 6) {
+                alert('La nueva contraseña debe tener al menos 6 caracteres.');
+                return;
+            }
+
+            try {
+                await changeUserPassword(newPassword);
+                alert('Contraseña actualizada correctamente.');
+                document.getElementById('newPassword').value = '';
+            } catch (error) {
+                alert('No se pudo cambiar la contraseña: ' + error.message);
+            }
+        });
+    }
 });

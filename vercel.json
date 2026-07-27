@@ -8,5 +8,15 @@
         "distDir": "dist"
       }
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/web.html"
+    },
+    {
+      "source": "/index.html",
+      "destination": "/web.html"
+    }
   ]
 }
