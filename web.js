@@ -5,7 +5,14 @@ let bookedAppointment = null;
 let currentUser = null;
 const horarios = ['08:00', '10:00', '12:00', '13:30', '15:30'];
 
-// Verificar usuario al cargar
+function setAuthFeedback(message, type = '') {
+    const statusEl = document.getElementById('authStatus');
+    if (!statusEl) return;
+
+    statusEl.textContent = message || '';
+    statusEl.className = `auth-status${type ? ` ${type}` : ''}`;
+}
+
 async function checkUser() {
     currentUser = await getCurrentUser();
     const authCard = document.getElementById('authCard');
@@ -32,6 +39,7 @@ async function checkUser() {
         if (adminPanel) {
             adminPanel.style.display = isAdmin ? 'block' : 'none';
         }
+        setAuthFeedback('');
     } else {
         if (registerBtn) registerBtn.style.display = 'block';
         if (loginBtn) loginBtn.style.display = 'block';
@@ -40,6 +48,7 @@ async function checkUser() {
         if (welcomeMessage) welcomeMessage.style.display = 'none';
         if (passwordChangeBox) passwordChangeBox.style.display = 'none';
         if (adminPanel) adminPanel.style.display = 'none';
+        setAuthFeedback('');
     }
 }
 
@@ -157,83 +166,146 @@ document.addEventListener('DOMContentLoaded', function () {
     checkUser();
     generateCalendar();
 
-    document.getElementById('prevMonth').addEventListener('click', function () {
-        currentDate.setMonth(currentDate.getMonth() - 1);
-        generateCalendar();
-    });
+    const prevMonthEl = document.getElementById('prevMonth');
+    if (prevMonthEl) {
+        prevMonthEl.addEventListener('click', function () {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            generateCalendar();
+        });
+    }
 
-    document.getElementById('nextMonth').addEventListener('click', function () {
-        currentDate.setMonth(currentDate.getMonth() + 1);
-        generateCalendar();
-    });
+    const nextMonthEl = document.getElementById('nextMonth');
+    if (nextMonthEl) {
+        nextMonthEl.addEventListener('click', function () {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            generateCalendar();
+        });
+    }
 
-    // Los botones de autenticación ya están manejados arriba
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
 
-    document.getElementById('registerBtn').addEventListener('click', async function () {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+    if (emailInput) {
+        emailInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                document.getElementById('loginBtn')?.click();
+            }
+        });
+    }
 
-        if (!email || !password) {
-            alert('Completa correo y contraseña para registrarte.');
-            return;
-        }
+    if (passwordInput) {
+        passwordInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                document.getElementById('loginBtn')?.click();
+            }
+        });
+    }
 
-        if (password.length < 6) {
-            alert('La contraseña debe tener al menos 6 caracteres.');
-            return;
-        }
+    const registerBtnEl = document.getElementById('registerBtn');
+    if (registerBtnEl) {
+        registerBtnEl.addEventListener('click', async function () {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
 
-        await registerWithEmail(email, password);
+            if (!email || !password) {
+                setAuthFeedback('Completa correo y contraseña para registrarte.', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                setAuthFeedback('La contraseña debe tener al menos 6 caracteres.', 'error');
+                return;
+            }
+
+            setAuthFeedback('Creando cuenta...', 'loading');
+            try {
+                const data = await registerWithEmail(email, password);
+                if (data?.user) {
+                    currentUser = data.user;
+                    setAuthFeedback('Cuenta creada correctamente. ¡Bienvenido!', 'success');
+                    await checkUser();
+                }
+            } catch (error) {
+                setAuthFeedback(error.message || 'No se pudo crear la cuenta.', 'error');
+            }
+        });
+    }
+
+    const loginBtnEl = document.getElementById('loginBtn');
+    if (loginBtnEl) {
+        loginBtnEl.addEventListener('click', async function () {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                setAuthFeedback('Completa correo y contraseña para iniciar sesión.', 'error');
+                return;
+            }
+
+            setAuthFeedback('Iniciando sesión...', 'loading');
+            try {
+                const data = await loginWithEmail(email, password);
+                if (data?.user) {
+                    currentUser = data.user;
+                    setAuthFeedback('Sesión iniciada correctamente.', 'success');
+                    await checkUser();
+                }
+            } catch (error) {
+                setAuthFeedback(error.message || 'No se pudo iniciar sesión.', 'error');
+            }
+        });
+    }
+
+    const loginGoogleEl = document.getElementById('loginGoogle');
+    if (loginGoogleEl) {
+        loginGoogleEl.addEventListener('click', async function () {
+            await loginWithGoogle();
+            await checkUser();
+        });
+    }
+
+    const loginFacebookEl = document.getElementById('loginFacebook');
+    if (loginFacebookEl) {
+        loginFacebookEl.addEventListener('click', async function () {
+            await loginWithFacebook();
+            await checkUser();
+        });
+    }
+
+    const logoutBtnEl = document.getElementById('logoutBtn');
+    if (logoutBtnEl) {
+        logoutBtnEl.addEventListener('click', async function () {
+            await logout();
+            await checkUser();
+        });
+    }
+
+    window.addEventListener('auth:updated', function () {
         checkUser();
     });
 
-    document.getElementById('loginBtn').addEventListener('click', async function () {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+    const confirmarTurnoEl = document.getElementById('confirmarTurno');
+    if (confirmarTurnoEl) {
+        confirmarTurnoEl.addEventListener('click', async function () {
+            const servicio = document.getElementById('servicioSelect').value;
 
-        if (!email || !password) {
-            alert('Completa correo y contraseña para iniciar sesión.');
-            return;
-        }
+            if (!selectedDate || !selectedTime || !servicio) {
+                alert('Seleccioná fecha, horario y servicio para confirmar el turno.');
+                return;
+            }
 
-        const data = await loginWithEmail(email, password);
-        if (data?.user) {
-            currentUser = data.user;
-            checkUser();
-        }
-    });
+            if (!currentUser) {
+                alert('Debes iniciar sesión para reservar un turno.');
+                return;
+            }
 
-    document.getElementById('loginGoogle').addEventListener('click', async function () {
-        await loginWithGoogle();
-        checkUser();
-    });
-
-    document.getElementById('loginFacebook').addEventListener('click', async function () {
-        await loginWithFacebook();
-        checkUser();
-    });
-
-    document.getElementById('logoutBtn').addEventListener('click', function () {
-        logout();
-    });
-
-    document.getElementById('confirmarTurno').addEventListener('click', async function () {
-        const servicio = document.getElementById('servicioSelect').value;
-
-        if (!selectedDate || !selectedTime || !servicio) {
-            alert('Seleccioná fecha, horario y servicio para confirmar el turno.');
-            return;
-        }
-
-        if (!currentUser) {
-            alert('Debes iniciar sesión para reservar un turno.');
-            return;
-        }
-
-        const fechaFormato = selectedDate.toISOString().split('T')[0];
-        await saveTurno(currentUser.id, fechaFormato, selectedTime, servicio);
-        bookedAppointment = { fecha: fechaFormato, hora: selectedTime, servicio };
-    });
+            const fechaFormato = selectedDate.toISOString().split('T')[0];
+            await saveTurno(currentUser.id, fechaFormato, selectedTime, servicio);
+            bookedAppointment = { fecha: fechaFormato, hora: selectedTime, servicio };
+        });
+    }
 
     const fileInput = document.getElementById('fileInput');
     const preview = document.getElementById('preview');
@@ -251,23 +323,26 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    document.getElementById('uploadBtn').addEventListener('click', async function () {
-        if (!currentUser) {
-            alert('Debes iniciar sesión para subir imágenes.');
-            return;
-        }
-
-        if (fileInput && fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            const imageUrl = await uploadImage(file, currentUser.id);
-            if (imageUrl) {
-                preview.src = imageUrl;
-                alert('Diseño cargado correctamente.');
+    const uploadBtnEl = document.getElementById('uploadBtn');
+    if (uploadBtnEl) {
+        uploadBtnEl.addEventListener('click', async function () {
+            if (!currentUser) {
+                alert('Debes iniciar sesión para subir imágenes.');
+                return;
             }
-        } else {
-            alert('Seleccioná una imagen para ver el diseño.');
-        }
-    });
+
+            if (fileInput && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const imageUrl = await uploadImage(file, currentUser.id);
+                if (imageUrl) {
+                    preview.src = imageUrl;
+                    alert('Diseño cargado correctamente.');
+                }
+            } else {
+                alert('Seleccioná una imagen para ver el diseño.');
+            }
+        });
+    }
 
     document.querySelectorAll('.event-btn').forEach(btn => {
         btn.addEventListener('click', function () {
@@ -275,21 +350,24 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    document.getElementById('confirmPayment').addEventListener('click', function () {
-        const metodoPago = document.querySelector('input[name="pago"]:checked');
-        const monto = document.getElementById('monto').value;
+    const confirmPaymentEl = document.getElementById('confirmPayment');
+    if (confirmPaymentEl) {
+        confirmPaymentEl.addEventListener('click', function () {
+            const metodoPago = document.querySelector('input[name="pago"]:checked');
+            const monto = document.getElementById('monto').value;
 
-        if (metodoPago && monto) {
-            const metodos = {
-                tarjeta: 'Tarjeta de Crédito/Débito',
-                mercadopago: 'Mercado Pago',
-                efectivo: 'Efectivo'
-            };
-            alert(`Pago confirmado\nMétodo: ${metodos[metodoPago.value]}\nMonto: $${monto}`);
-        } else {
-            alert('Seleccioná un método de pago y un monto.');
-        }
-    });
+            if (metodoPago && monto) {
+                const metodos = {
+                    tarjeta: 'Tarjeta de Crédito/Débito',
+                    mercadopago: 'Mercado Pago',
+                    efectivo: 'Efectivo'
+                };
+                alert(`Pago confirmado\nMétodo: ${metodos[metodoPago.value]}\nMonto: $${monto}`);
+            } else {
+                alert('Seleccioná un método de pago y un monto.');
+            }
+        });
+    }
 
     const changePasswordBtn = document.getElementById('changePasswordBtn');
     if (changePasswordBtn) {

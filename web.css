@@ -193,6 +193,25 @@ body {
     margin-bottom: 10px;
 }
 
+.auth-status {
+    min-height: 1.2em;
+    margin: 8px 0 12px;
+    font-size: 0.95rem;
+    color: #8b5e3c;
+}
+
+.auth-status.success {
+    color: #2d6a4f;
+}
+
+.auth-status.error {
+    color: #b42318;
+}
+
+.auth-status.loading {
+    color: #6b4f1d;
+}
+
 .auth-btn {
     display: block;
     width: 100%;

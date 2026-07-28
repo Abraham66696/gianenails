@@ -62,6 +62,7 @@
                                     <label for="password">Contraseña</label>
                                     <input type="password" id="password" class="input-field" placeholder="Min. 6 caracteres">
                                 </div>
+                                <p id="authStatus" class="auth-status" aria-live="polite"></p>
                                 <button class="action-btn" id="registerBtn">Crear cuenta</button>
                                 <button class="action-btn" id="loginBtn" style="background-color: #2d6a4f;">Iniciar sesión</button>
                                 <div class="divider" style="margin: 15px 0; text-align: center; color: #999;">O</div>
@@ -134,6 +135,11 @@
         </div>
     </div>
 
-    <script type="module" src="web.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="appointments.js"></script>
+    <script src="storage.js"></script>
+    <script src="web.js"></script>
 </body>
 </html>

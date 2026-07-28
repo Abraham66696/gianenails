@@ -45,6 +45,17 @@ Anon Public Key:  eyJhbGciOiJIUzI1NiIsInR...
 3. Copia TODO este código y pégalo:
 
 ```sql
+-- Extensiones necesarias para generar UUIDs
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Crear tabla de perfiles
+CREATE TABLE IF NOT EXISTS profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    email TEXT NOT NULL,
+    role TEXT DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT now()
+);
+
 -- Crear tabla de turnos
 CREATE TABLE IF NOT EXISTS turnos (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -67,8 +78,22 @@ CREATE TABLE IF NOT EXISTS imagenes (
 );
 
 -- Habilitar seguridad
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE turnos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE imagenes ENABLE ROW LEVEL SECURITY;
+
+-- Politicas para perfiles
+CREATE POLICY "Usuarios pueden ver su perfil"
+ON profiles FOR SELECT
+USING (auth.uid() = id);
+
+CREATE POLICY "Usuarios pueden crear su perfil"
+ON profiles FOR INSERT
+WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Usuarios pueden actualizar su perfil"
+ON profiles FOR UPDATE
+USING (auth.uid() = id);
 
 -- Políticas para turnos
 CREATE POLICY "Usuarios pueden ver sus turnos"

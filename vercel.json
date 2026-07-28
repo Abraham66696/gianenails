@@ -11,12 +11,8 @@
   ],
   "rewrites": [
     {
-      "source": "/",
-      "destination": "/web.html"
-    },
-    {
-      "source": "/index.html",
-      "destination": "/web.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
